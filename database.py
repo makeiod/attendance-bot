@@ -212,6 +212,6 @@ async def get_percentages(timeframe, user_id, type):
                 if total_sessions[i] in attended_sessions:
                     attended += 1
                 total = i + 1
-                percent = attended/total
+                percent = attended/total * 100
                 percentages[total_sessions[i][0]] = percent
             return percentages
