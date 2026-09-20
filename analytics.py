@@ -9,6 +9,11 @@ async def simple(user_id, timeframe, type):
     """Returns a simple line graph of a users attendance percentage throughout the year since joining the team"""
     percentages = await database.get_percentages(timeframe, user_id, type)
     fig, ax = plt.subplots()
+    fig.patch.set_facecolor('#313338')
+    ax.set_facecolor('#313338')
+    ax.tick_params(colors='white')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')   
     x, y = [], []
     i = 1
     for key in percentages:
