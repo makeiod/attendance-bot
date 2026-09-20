@@ -192,7 +192,7 @@ async def report(
     else:
         friendly_name = 'Spring Break'
     if format == 'summary':
-        await interaction.followup.send(f'{display_name} attended {attended} practices out of {total} practices and had {attendance_percent} attendance during {friendly_name}.')
+        await interaction.followup.send(f'{display_name} attended {attended} practices out of {total} practices and had {attendance_percent} total attendance during {friendly_name}.', ephemeral=True)
     if format == 'graph':
         try:
             file_path = await analytics.simple(user_id, timeframe, type)
@@ -207,10 +207,10 @@ async def report(
             discord_file = discord.File(file_path)
             await interaction.followup.send(file=discord_file)
             os.remove(file_path)
-            await interaction.followup.send(f'{display_name} attended {attended} practices out of {total} practices and had {attendance_percent} attendance during {friendly_name}.')
+            await interaction.followup.send(f'{display_name} attended {attended} practices out of {total} practices and had {attendance_percent} total attendance during {friendly_name}.', ephemeral=True)
         except FileNotFoundError:
             await interaction.followup.send(f'Error displaying graph.')
-            await interaction.followup.send(f'{display_name} attended {attended} practices out of {total} practices and had {attendance_percent} attendance during {friendly_name}.')
+            await interaction.followup.send(f'{display_name} attended {attended} practices out of {total} practices and had {attendance_percent} total attendance during {friendly_name}.', ephemeral=True)
 
 
 
