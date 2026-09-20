@@ -148,7 +148,7 @@ async def timeframe_autocomplete(interaction: discord.Interaction, current: str)
         app_commands.Choice(name='November', value=f'{year}-11'),
         app_commands.Choice(name='December', value=f'{year}-12'),
         ]
-    other = [app_commands.Choice(name='Spring Break', value='SPRING_BREAK'), app_commands.Choice(name='Academic Year')]
+    other = [app_commands.Choice(name='Spring Break', value='SPRING_BREAK'), app_commands.Choice(name='Academic Year', value=f'ALL')]
     all_choices = quarters + months + other
     return [choice for choice in all_choices if current.lower() in choice.name.lower()]
 
@@ -187,6 +187,8 @@ async def report(
         friendly_name = m_name_mapping.get(timeframe, timeframe)
     elif timeframe in quarters:
         friendly_name = timeframe.title()
+    elif timeframe == 'ALL':
+        friendly_name = 'the academic year'
     else:
         friendly_name = 'Spring Break'
     if format == 'summary':

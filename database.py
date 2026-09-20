@@ -73,13 +73,14 @@ async def validate_attendance(conn, user_id, feedback, session_id):
 async def log_practice(term, type, is_active, timestamp, topic):
     """Log the session ID into the session table once a window is opened"""
     async with db_pool.connection() as conn:
-        if active_session(conn):
+        if await active_session(conn):
             return False
         async with conn.cursor() as cursor:
             session_id = await gen_session_id(term, type, conn)
             query = 'INSERT INTO session (session_id, is_active, timestamp, topic) VALUES (%s, %s, %s, %s)'
             await cursor.execute(query, (session_id, is_active, timestamp, topic)) 
-            await conn.commit()
+            await conn.commit() 
+            return True
          
 
 async def gen_session_id(term, type, conn):
@@ -96,13 +97,12 @@ async def gen_session_id(term, type, conn):
 
 async def active_session(conn):
     """If a session is active, returns the session_id"""
-    async with db_pool.connection() as conn:
-        async with conn.cursor() as cursor:
-            await cursor.execute('SELECT session_id FROM session WHERE is_active = 1')
-            active_row = await cursor.fetchone()
-            if not active_row:
-                return None
-            return active_row[0]
+    async with conn.cursor() as cursor:
+        await cursor.execute('SELECT session_id FROM session WHERE is_active = 1')
+        active_row = await cursor.fetchone()
+        if not active_row:
+            return None
+        return active_row[0]
 
 async def log_notes(coach_name, coach_notes):
     """Logs a coach's notes into the session table, and closes the window"""
@@ -159,18 +159,22 @@ async def mean_count(timeframe, user_id, type):
                 query = 'SELECT COUNT(DISTINCT session_id) FROM attendance WHERE timestamp LIKE %s and user_id = %s AND session_id LIKE %s'
                 await cursor.execute(query, (f'{timeframe}%', user_id, f'%{type}%'))
                 total = await cursor.fetchone()
-                total = int(total[0])
-                if total == 0:
-                    return 0, 0, '0%'
-                attendance_percent = f'{round(attended/total, 2) * 100}%'
-                return attended, total, attendance_percent
-            query = "SELECT COUNT(DISTINCT session_id) FROM attendance WHERE session_id LIKE %s and user_id = %s AND STATUS IN ('PRESENT', 'EXCUSED') AND session_id LIKE %s"
-            await cursor.execute(query, (timeframe, user_id, f'%{type}%'))
-            attended = await cursor.fetchone()
-            attended = int(attended[0])
-            query = 'SELECT COUNT(DISTINCT session_id) FROM attendance WHERE session_id LIKE %s and user_id = %s AND session_id LIKE %s'
-            await cursor.execute(query, (timeframe, user_id, f'%{type}%'))
-            total = await cursor.fetchone()
+            elif timeframe == 'ALL':
+                query = "SELECT COUNT(DISTINCT session_id) FROM attendance WHERE user_id = %s and STATUS IN ('PRESENT', 'EXCUSED') AND session_id LIKE %s"
+                await cursor.execute(query, (user_id, f'%{type}%'))
+                attended = await cursor.fetchone()
+                attended = int(attended[0])
+                query = 'SELECT COUNT(DISTINCT session_id) FROM attendance WHERE user_id = %s and session_id LIKE %s'
+                await cursor.execute(query, (user_id, f'%{type}%'))
+                total = await cursor.fetchone()
+            else:
+                query = "SELECT COUNT(DISTINCT session_id) FROM attendance WHERE session_id LIKE %s and user_id = %s AND STATUS IN ('PRESENT', 'EXCUSED') AND session_id LIKE %s"
+                await cursor.execute(query, (f'{timeframe}%', user_id, f'%{type}%'))
+                attended = await cursor.fetchone()
+                attended = int(attended[0])
+                query = 'SELECT COUNT(DISTINCT session_id) FROM attendance WHERE session_id LIKE %s and user_id = %s AND session_id LIKE %s'
+                await cursor.execute(query, (f'{timeframe}%', user_id, f'%{type}%'))
+                total = await cursor.fetchone()
             total = int(total[0])
             if total == 0:
                 return 0, 0, '0%'
@@ -190,19 +194,20 @@ async def get_percentages(timeframe, user_id, type):
                 query = "SELECT DISTINCT session_id FROM attendance WHERE timestamp LIKE %s AND user_id = %s AND session_id LIKE %s ORDER BY timestamp"
                 await cursor.execute(query, (f'{timeframe}%', user_id, f'%{type}%'))
                 total_sessions = await cursor.fetchall()
-                for i in range(len(total_sessions)):
-                    if total_sessions[i] in attended_sessions:
-                        attended += 1
-                    total = i + 1
-                    percent = attended/total
-                    percentages[total_sessions[i][0]] = percent
-                return percentages
-            query = "SELECT DISTINCT session_id FROM attendance where session_id LIKE %s and user_id = %s AND STATUS IN ('PRESENT', 'EXCUSED') AND session_id LIKE %s ORDER BY timestamp"
-            await cursor.execute(query, (timeframe, user_id, f'%{type}%'))
-            attended_sessions = await cursor.fetchall()
-            query = "SELECT DISTINCT session_id FROM attendance where session_id LIKE %s and user_id = %s AND session_id LIKE %s ORDER BY timestamp"
-            await cursor.execute(query, (timeframe, user_id, f'%{type}%'))
-            total_sessions = await cursor.fetchall()
+            elif timeframe == 'ALL':
+                query = "SELECT DISTINCT session_id FROM attendance WHERE user_id = %s and STATUS IN ('PRESENT', 'EXCUSED') AND session_id LIKE %s ORDER BY timestamp"
+                await cursor.execute(query, (user_id, f'%{type}%'))
+                attended_sessions = await cursor.fetchall()
+                query = 'SELECT DISTINCT session_id FROM attendance WHERE user_id = %s and session_id LIKE %s ORDER BY timestamp'
+                await cursor.execute(query, (user_id, f'%{type}%'))
+                total_sessions = await cursor.fetchall()
+            else:
+                query = "SELECT DISTINCT session_id FROM attendance where session_id LIKE %s and user_id = %s AND STATUS IN ('PRESENT', 'EXCUSED') AND session_id LIKE %s ORDER BY timestamp"
+                await cursor.execute(query, (f'{timeframe}%', user_id, f'%{type}%'))
+                attended_sessions = await cursor.fetchall()
+                query = "SELECT DISTINCT session_id FROM attendance where session_id LIKE %s and user_id = %s AND session_id LIKE %s ORDER BY timestamp"
+                await cursor.execute(query, (f'{timeframe}%', user_id, f'%{type}%'))
+                total_sessions = await cursor.fetchall()
             for i in range(len(total_sessions)):
                 if total_sessions[i] in attended_sessions:
                     attended += 1
