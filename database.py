@@ -143,7 +143,7 @@ async def check_window(current):
             timestamp = await cursor.fetchone()
             prior = datetime.datetime.fromisoformat(timestamp[0])
             time_diff = current - prior
-            if time_diff.total_seconds() > 10800:
+            if time_diff.total_seconds() > 30:
                 return True
             return False
 

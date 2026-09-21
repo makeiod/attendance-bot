@@ -108,7 +108,7 @@ async def open_window(interaction: discord.Interaction, term: str, type : str, t
         await interaction.response.send_message('There is already an open window.', ephemeral=True)
 
 # automated task for the bot to check whether or not the coach forgot to close the window
-@tasks.loop(minutes=30)
+@tasks.loop(minutes=1)
 async def check_window():
     current = datetime.datetime.now()
     if await database.check_window(current):
