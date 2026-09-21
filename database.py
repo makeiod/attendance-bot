@@ -7,7 +7,12 @@ import os
 load_dotenv()
 
 connection_string = os.getenv('SUPA_CONNECTION_STRING')
-db_pool = AsyncConnectionPool(conninfo=connection_string,open=False, min_size=1, max_size=10)
+db_pool = AsyncConnectionPool(conninfo=connection_string,
+                              open=False, 
+                              min_size=1, 
+                              max_size=10,
+                              kwargs={"prepare_threshold": None}
+                              )
 
 async def setup_db():
    """Create attendance and session tables in supabase"""
