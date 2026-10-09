@@ -117,13 +117,13 @@ async def check_window():
 
 # bot command for coaches to close the window, sends a modal with space for notes using the closewindow class 
 @bot.tree.command(name='close_window', description='Close attendance window. WAIT UNTIL 30+ MINUTES AFTER PRACTICE OFFICIALLY ENDS.')
-@app_commands.default_permissions(administrator=True)
+@app_commands.default_permissions(manage_roles=True)
 async def close_window(interaction: discord.Interaction):
     await interaction.response.send_modal(CloseWindow())
 
 # bot command for coaches to spawn an attendance button, should only need to be used once
 @bot.tree.command(name='attend_button', description='Spawn an attendance button. COACH ONLY')
-@app_commands.default_permissions(administrator=True)
+@app_commands.default_permissions(manage_roles=True)
 async def attend_button(interaction: discord.Interaction):
     view = InfiniteButton()
     await interaction.response.send_message('Log your attendance at practice.', view = view)
@@ -154,7 +154,7 @@ async def timeframe_autocomplete(interaction: discord.Interaction, current: str)
 
 # bot command for coaches to generate an attendnace summary
 @bot.tree.command(name='attendance_summary', description='Get a report on an athletes attendance.')
-@app_commands.default_permissions(administrator=True)
+@app_commands.default_permissions(manage_roles=True)
 # coaches can choose from poomsae or sparring, along with the timeframe specified in the autocomplete function
 @app_commands.autocomplete(timeframe=timeframe_autocomplete)
 @app_commands.choices(type=[app_commands.Choice(name='Sparring',value='SPARRING'), app_commands.Choice(name='Poomsae', value='POOMSAE')])
