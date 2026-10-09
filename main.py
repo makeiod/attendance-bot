@@ -94,7 +94,7 @@ async def on_ready():
 
 # bot command for coaches to open practice window, ensures that they input a valid session ID from the available choices, logging the session ID in the database when the window opens
 @bot.tree.command(name='open_window', description='Open attendance window.')
-@app_commands.default_permissions(administrator=True)
+@app_commands.default_permissions(manage_roles=True)
 @app_commands.choices(term=[app_commands.Choice(name='Fall',value='FALL'), app_commands.Choice(name='Winter', value='WINTER'), 
                             app_commands.Choice(name='Spring Break', value='SPRING_BREAK'), app_commands.Choice(name='Spring',value='SPRING')])
 @app_commands.choices(type=[app_commands.Choice(name='Sparring',value='SPARRING'), app_commands.Choice(name='Poomsae', value='POOMSAE'), app_commands.Choice(name='Split', value='SPARRING_POOMSAE')])
